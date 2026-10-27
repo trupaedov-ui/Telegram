@@ -1,1 +1,23 @@
-
+name: Build Flip
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Install SDK parts
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.2.12479018" "cmake;3.22.1" "build-tools;36.0.0" "platforms;android-36"
+      - name: Build
+        run: |
+          chmod +x gradlew
+          ./gradlew :TMessagesProj_App:assembleAfatRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Flip-apk
+          path: TMessagesProj_App/build/outputs/apk/afat/release/app.apk
